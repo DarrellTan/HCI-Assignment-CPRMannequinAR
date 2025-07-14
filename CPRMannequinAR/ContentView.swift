@@ -38,14 +38,23 @@ struct ARViewContainer: UIViewRepresentable {
 
         let config = ARWorldTrackingConfiguration()
         config.planeDetection = [.horizontal]
+
+        // ✅ Enable people occlusion if supported
+        if ARWorldTrackingConfiguration.supportsFrameSemantics(.personSegmentationWithDepth) {
+            config.frameSemantics.insert(.personSegmentationWithDepth)
+            print("✅ People occlusion with depth enabled")
+        } else {
+            print("⚠️ People occlusion not supported on this device")
+        }
+
         sceneView.session.run(config)
 
-        // Load USDZ model
+        // ✅ Load and position the model
         if let scene = try? SCNScene(named: "Male.usdz") {
             let node = scene.rootNode.clone()
-            node.scale = SCNVector3(0.1, 0.2, 0.1)
+            node.scale = SCNVector3(0.1, 0.2, 0.1) // twice as tall (Y-axis)
             node.position = SCNVector3(0, -0.1, -1.0) // 1 meter in front
-            node.eulerAngles = SCNVector3(-Float.pi / 2, 0, 0) // Lying down, face up
+            node.eulerAngles = SCNVector3(-Float.pi / 2, 0, 0) // Lying down
             sceneView.scene.rootNode.addChildNode(node)
             context.coordinator.modelNode = node
             print("✅ Model added to scene")
@@ -95,7 +104,7 @@ struct ContentView: View {
                 .edgesIgnoringSafeArea(.all)
 
             VStack {
-                // CPR instruction label
+                // Instruction label
                 Text(steps[currentStepIndex])
                     .font(.headline)
                     .foregroundColor(.black)
@@ -107,7 +116,7 @@ struct ContentView: View {
 
                 Spacer()
 
-                // Buttons
+                // Control buttons
                 HStack {
                     Spacer()
 
@@ -139,7 +148,6 @@ struct ContentView: View {
                             .cornerRadius(10)
                             .shadow(radius: 3)
                     }
-
                     .padding(.leading, 8)
                     .padding(.trailing)
                 }
